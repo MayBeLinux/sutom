@@ -26,7 +26,7 @@ Il est attendu, avant tout, de recevoir un livrable **fonctionnel** et de **qual
 
 ### Critères d'acceptabilité du produit
 
-- La logique implémentée doit utiliser le langage appris en cours, le PHP.
+- La logique implémentée doit utiliser le langage appris en cours, le TypeScript.
 - Le(s) document(s) livrés doivent être responsive
 - un projet complet et fonctionnel versionné sous git
 - Le(s) document(s) livrés doivent être respectueux de la RGPD.
@@ -64,7 +64,7 @@ N'oubliez pas qu'une borne organisation est essentielle pour la réussite de tou
 
 ## Etape 1
 
-  Concevez le site internet. Il doit être conçu en HTML 5, CSS 3 et PHP. Il doit permettre :
+  Concevez le site internet. Il doit être conçu en HTML 5, CSS 3 et TypeScript. Il doit permettre :
   
 - L'ordinateur propose aléatoirement un mot, puis un résultat est affiché en fonction des règles mentionnées ci-dessus.
 - à l'utilisateur de soumettre une valeur
