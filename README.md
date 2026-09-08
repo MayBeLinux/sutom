@@ -1,4 +1,4 @@
-# PHP : SUTOM
+# Typescript : SUTOM
 
 ## Objectif pour l'apprenant
 
