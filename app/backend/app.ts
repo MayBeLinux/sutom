@@ -1,10 +1,10 @@
 import express, { type Express, type Request, type Response } from 'express';
-import { AppDataSource } from './database/data-source';
+import { AppDataSource } from './database/data-source.ts';
 import { join } from 'path/win32';
 import { readFileSync } from 'fs';
 
-import gamesRoutes from './routes/games.routes';
-import statsRoutes from './routes/stats.routes';
+import gamesRoutes from './routes/games.routes.ts';
+import statsRoutes from './routes/stats.routes.ts';
 
 export const createApp = (): Express => {
     const app: Express = express();

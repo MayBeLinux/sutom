@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { gamesController } from '../controllers/games.controller';
+import { gamesController } from '../controllers/games.controller.ts';
 
 const router = Router();
 
