@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../database/data-source.ts';
 
-const gameRepository = AppDataSource.getRepository('Game');
+const gameRepository = AppDataSource.getRepository('WordOfTheDay');
 
 export const gamesController = {
     getWord: async (req: Request, res: Response) => {
