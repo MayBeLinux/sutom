@@ -1,4 +1,8 @@
 import express, { type Express, type Request, type Response } from 'express';
+import { AppDataSource } from './database/data-source';
+import { join } from 'path/win32';
+import { readFileSync } from 'fs';
+
 import gamesRoutes from './routes/games.routes';
 import statsRoutes from './routes/stats.routes';
 
@@ -15,4 +19,24 @@ export const createApp = (): Express => {
     });
 
     return app;
+};
+
+if (require.main === module) {
+	const pkg = JSON.parse(
+		readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+	);
+	const port = Number(process.env.PORT) || 3000;
+	const app = createApp();
+
+	AppDataSource.initialize()
+		.then(() => {
+			app.listen(port, () => {
+				console.log(
+					`Server ${pkg.name}@${pkg.version} (${process.env.NODE_ENV ?? "development"}) is running on http://localhost:${port}`,
+				);
+			});
+		})
+		.catch((err) => {
+			console.error("Error during Data Source initialization:", err);
+		});
 }
