@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AppDataSource } from '../database/data-source';
 
 export const gamesController = {
     getWord: async (req: Request, res: Response) => {
