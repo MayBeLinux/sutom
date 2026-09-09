@@ -1,18 +1,15 @@
 import "reflect-metadata"
-import * as dotenv from "dotenv"
-import * as path from "path"
 import { DataSource } from "typeorm"
-
-dotenv.config({ path: path.resolve(import.meta.dirname, "../../../.env") })
+import { env } from "../configs/env.ts"
 
 export const AppDataSource = new DataSource({
     type: "postgres",
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT ?? 5432),
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    entities: ["/entities/**/*{.js,.ts}"],
-    migrations: ["/migrations/**/*{.js,.ts}"],
+    host: env.dbHost,
+    port: Number(env.dbPort ?? 5432),
+    username: env.dbUser,
+    password: env.dbPassword,
+    database: env.dbName,
+    entities: ["../entities/**/*{.js,.ts}"],
+    migrations: ["../migrations/**/*{.js,.ts}"],
     synchronize: false,
 })
