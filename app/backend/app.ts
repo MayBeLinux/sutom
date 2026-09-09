@@ -1,7 +1,8 @@
 import express, { type Express, type Request, type Response } from 'express';
 import { AppDataSource } from './database/data-source.ts';
-import { join } from 'path/win32';
-import { readFileSync } from 'fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 
 import gamesRoutes from './routes/games.routes.ts';
 import statsRoutes from './routes/stats.routes.ts';
@@ -21,9 +22,9 @@ export const createApp = (): Express => {
     return app;
 };
 
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const pkg = JSON.parse(
-		readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+		readFileSync(join(import.meta.dirname, "package.json"), "utf-8"),
 	);
 	const port = Number(process.env.PORT) || 3000;
 	const app = createApp();

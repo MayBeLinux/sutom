@@ -18,8 +18,8 @@ export class GameService {
             return GameService.dailyCache.word;
         }
 
-        const windData = await this.getWindData(48.132270649205786, -1.6924084184199777);
-        const randomWind: number = Math.round(windData ?? 0);
+        const windData = await this.getWindData(Math.random() * 50  , Math.random() * 50);
+        const randomWind: number = Math.round(windData ?? 10);
         const word = AppDataSource.getRepository(WordOfTheDay);
 
         const picked = await word.findOne({
@@ -48,6 +48,7 @@ export class GameService {
     }
 
     async checkLetter(key: string) {
-
+        const word = await this.fetchWord();
+        const wordFromFrontEnd = "";// the frontend send the word to check if the letter is in the word
     }
-}
+}    

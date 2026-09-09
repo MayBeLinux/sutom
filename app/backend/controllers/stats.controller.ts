@@ -1,7 +1,4 @@
 import { Request, Response } from 'express';
-import { AppDataSource } from '../database/data-source.ts';
-
-const statsRepository = AppDataSource.getRepository('DayStats')
 
 export const statsController = {
     getStats: async (req: Request, res: Response) => {

@@ -1,9 +1,5 @@
 import { Request, Response } from 'express';
-import { AppDataSource } from '../database/data-source.ts';
 import { GameService } from '../services/game.service.ts';
-
-
-const gameRepository = AppDataSource.getRepository('WordOfTheDay');
 
 export const gamesController = {
     getWord: async (req: Request, res: Response) => {
@@ -23,5 +19,6 @@ export const gamesController = {
     checkLetter: async (req: Request, res: Response) => {
         // Implement the logic to check if a letter corresponds to the word in the current game
     }
+
 
 }
