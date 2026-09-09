@@ -1,11 +1,21 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../database/data-source.ts';
+import { GameService } from '../services/game.service.ts';
+
 
 const gameRepository = AppDataSource.getRepository('WordOfTheDay');
 
 export const gamesController = {
     getWord: async (req: Request, res: Response) => {
-        // Implement the logic to get a word for the game
+        try {
+        const gameService = new GameService();
+        const word = await gameService.fetchWord();
+        res.status(200).json({ word });
+        } catch (error) {
+            return res.status(500).json({message: (error as Error).message});
+        }
+
+
     },
     pushWord: async (req: Request, res: Response) => {
         // Implement the logic to push a word for the game in the Database
