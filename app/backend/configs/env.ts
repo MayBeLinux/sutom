@@ -1,6 +1,7 @@
 import dotenv from "dotenv"
+import { join } from "node:path"
 
-dotenv.config()
+dotenv.config({ path: join(import.meta.dirname, "../../../.env") })
 
 export const env = {
     dbHost: process.env.DB_HOST,
