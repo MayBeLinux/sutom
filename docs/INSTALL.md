@@ -20,3 +20,20 @@ cp .env.example .env
 ```shell
 docker compose up -d
 ```
+
+## Commandes à exécuter dans `app/backend`
+
+### Installation des dépendances
+```shell
+npm install
+```
+
+### Exécution des migrations
+```shell
+npm run migration:run
+```
+
+### Ajout du mot du jour
+```shell
+npm run seed
+```
