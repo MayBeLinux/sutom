@@ -5,7 +5,7 @@
     "express": "^5.2.1",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^1.1.1"
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/node": "^26.5.0",
@@ -15,5 +15,14 @@
     "seed": "tsx database/seed.ts",
     "migration:generate": "tsx node_modules/typeorm/cli.js migration:generate -d database/data-source.ts",
     "migration:run": "tsx node_modules/typeorm/cli.js migration:run -d database/data-source.ts"
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.5.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "dev": "tsx watch app.ts",
+    "start": "tsx app.ts",
+    "typecheck": "tsc"
   }
 }
