@@ -2,15 +2,27 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchWord,
   submitGuess,
+  type GuessResult,
   type TileState,
   type WordChallenge,
 } from "../api/game";
+import { scoreGuess } from "../game/scoreGuess";
 
 const MAX_ROWS = 8;
-const PLACEHOLDER_COLS = 8;
+
+// Mots locaux utilisés tant que le backend n'est pas branché : dès que
+// fetchWord répond, on bascule sur le vrai challenge et cette liste
+// n'est plus lue.
+const LOCAL_WORDS = [
+  "MONTAGNE",
+  "BAGUETTE",
+  "PATIENCE",
+  "FROMAGES",
+  "CAILLOUX",
+];
 
 export type Tile = { letter: string; state: TileState };
-export type GameStatus = "loading" | "playing" | "won" | "lost" | "error";
+export type GameStatus = "playing" | "won" | "lost" | "error";
 export type UseGameResult = {
   status: GameStatus;
   challenge: WordChallenge | null;
@@ -28,7 +40,12 @@ type StateSnapshot = {
   currentCol: number;
 };
 
-function buildEmptyBoard(rows: number, length: number, firstLetter: string): Tile[][] {
+function pickLocalWord(): string {
+  const index = Math.floor(Math.random() * LOCAL_WORDS.length);
+  return LOCAL_WORDS[index];
+}
+
+function buildInitialBoard(rows: number, length: number, firstLetter: string): Tile[][] {
   const board: Tile[][] = [];
   for (let r = 0; r < rows; r++) {
     const row: Tile[] = [];
@@ -44,34 +61,33 @@ function buildEmptyBoard(rows: number, length: number, firstLetter: string): Til
   return board;
 }
 
-function buildPlaceholderBoard(): Tile[][] {
-  return Array.from({ length: MAX_ROWS }, () =>
-    Array.from(
-      { length: PLACEHOLDER_COLS },
-      () => ({ letter: "", state: "empty" as TileState }),
-    ),
-  );
-}
-
 /** React hook driving the Sutom-style game state machine. */
 export function useGame(): UseGameResult {
+  const [localTarget] = useState<string>(() => pickLocalWord());
+
   const [status, setStatus] = useState<GameStatus>("playing");
-  const [challenge, setChallenge] = useState<WordChallenge | null>(null);
-  const [board, setBoard] = useState<Tile[][]>(() => buildPlaceholderBoard());
+  const [challenge, setChallenge] = useState<WordChallenge | null>(() => ({
+    length: localTarget.length,
+    firstLetter: localTarget[0],
+  }));
+  const [board, setBoard] = useState<Tile[][]>(() =>
+    buildInitialBoard(MAX_ROWS, localTarget.length, localTarget[0]),
+  );
   const [currentRow, setCurrentRow] = useState<number>(0);
-  const [currentCol, setCurrentCol] = useState<number>(0);
+  const [currentCol, setCurrentCol] = useState<number>(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const stateRef = useRef<StateSnapshot>({
     status: "playing",
-    challenge: null,
-    board: buildPlaceholderBoard(),
+    challenge: { length: localTarget.length, firstLetter: localTarget[0] },
+    board: buildInitialBoard(MAX_ROWS, localTarget.length, localTarget[0]),
     currentRow: 0,
-    currentCol: 0,
+    currentCol: 1,
   });
 
   const submittingRef = useRef<boolean>(false);
   const mountedRef = useRef<boolean>(true);
+  const usingBackendRef = useRef<boolean>(false);
 
   useEffect(() => {
     stateRef.current = {
@@ -95,15 +111,16 @@ export function useGame(): UseGameResult {
         const result = await fetchWord();
         if (!mountedRef.current) return;
         const snap = stateRef.current;
-        if (snap.currentRow !== 0 || snap.currentCol !== 0) return;
-        const initialBoard = buildEmptyBoard(MAX_ROWS, result.length, result.firstLetter);
+        // Ne remplace le mot local que si le joueur n'a rien commencé à taper.
+        if (snap.currentRow !== 0 || snap.currentCol !== 1) return;
+        usingBackendRef.current = true;
         setChallenge(result);
-        setBoard(initialBoard);
+        setBoard(buildInitialBoard(MAX_ROWS, result.length, result.firstLetter));
         setCurrentRow(0);
         setCurrentCol(1);
         setErrorMessage(null);
       } catch {
-        // Backend unreachable: stay in local placeholder mode so the UI is still typeable.
+        // Backend injoignable : on continue en local avec le mot déjà tiré.
       }
     })();
   }, []);
@@ -111,21 +128,23 @@ export function useGame(): UseGameResult {
   const submitCurrentRow = useCallback(async (guess: string, rowIndex: number) => {
     if (submittingRef.current) return;
     submittingRef.current = true;
-    const hasBackend = stateRef.current.challenge !== null;
     try {
-      if (!hasBackend) {
-        if (rowIndex < MAX_ROWS - 1) {
-          setCurrentRow(rowIndex + 1);
-          setCurrentCol(0);
-        }
-        return;
+      let result: GuessResult;
+      if (usingBackendRef.current) {
+        result = await submitGuess(guess);
+        if (!mountedRef.current) return;
+      } else {
+        result = {
+          tiles: scoreGuess(guess, localTarget),
+          correct: guess.toUpperCase() === localTarget.toUpperCase(),
+        };
       }
-      const result = await submitGuess(guess);
-      if (!mountedRef.current) return;
+
       const snap = stateRef.current;
       const nextBoard = snap.board.map((row) => row.slice());
       nextBoard[rowIndex] = result.tiles.map((t) => ({ letter: t.letter, state: t.state }));
       setBoard(nextBoard);
+
       if (result.correct) {
         setStatus("won");
       } else if (rowIndex >= MAX_ROWS - 1) {
@@ -141,20 +160,19 @@ export function useGame(): UseGameResult {
     } finally {
       submittingRef.current = false;
     }
-  }, []);
+  }, [localTarget]);
 
   const handleKey = useCallback(
     (key: string) => {
       const snap = stateRef.current;
-      if (snap.status !== "playing") return;
+      if (snap.status !== "playing" || snap.challenge === null) return;
 
-      const length = snap.challenge?.length ?? PLACEHOLDER_COLS;
-      const minCol = snap.challenge === null ? 0 : 1;
+      const length = snap.challenge.length;
       const row = snap.currentRow;
       const col = snap.currentCol;
 
       if (key === "BACKSPACE") {
-        if (col > minCol) {
+        if (col > 1) {
           const nextBoard = snap.board.map((r) => r.slice());
           nextBoard[row][col - 1] = { letter: "", state: "empty" };
           setBoard(nextBoard);
