@@ -8,7 +8,7 @@ import "./App.css";
 
 function App() {
   const [helpOpen, setHelpOpen] = useState(false);
-  const [statsOpen, setStatsOpen] = useState(true);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   return (
     <div className="app">
