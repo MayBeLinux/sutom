@@ -3,6 +3,10 @@
 ## Configuration du `.env.example`
 
 ```
+# Express server
+PORT=3000
+
+# Database
 DB_HOST="localhost"
 DB_PORT=5434
 DB_USER="your_db_user"
