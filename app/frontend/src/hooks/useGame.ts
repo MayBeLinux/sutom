@@ -85,16 +85,18 @@ export function useGame(): UseGameResult {
   }, [status, challenge, board, currentRow, currentCol]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         const result = await fetchWord();
-        if (!mountedRef.current) return;
+        if (cancelled) return;
         setChallenge(result);
         setBoard(buildInitialBoard(MAX_ROWS, result.length, result.firstLetter));
         setCurrentRow(0);
@@ -102,11 +104,14 @@ export function useGame(): UseGameResult {
         setErrorMessage(null);
         setStatus("playing");
       } catch (err) {
-        if (!mountedRef.current) return;
+        if (cancelled) return;
         setErrorMessage(err instanceof Error ? err.message : "Failed to load word");
         setStatus("error");
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const submitCurrentRow = useCallback(async (guess: string, rowIndex: number) => {
