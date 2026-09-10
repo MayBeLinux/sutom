@@ -5,6 +5,7 @@ const router = Router();
 
 // Get
 router.get('/word', gamesController.getWord);
+router.get('/day-word', gamesController.getLatestWord)
 
 // Post
 router.post('/word', gamesController.pushWord);
