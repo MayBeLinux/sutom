@@ -24,8 +24,10 @@ export const gamesController = {
         try {
             const gameService = new GameService()
             const latestWord = await gameService.getLatestWord()
+            const letterCount = await gameService.countLetter(latestWord.word)
             return res.status(200).json({ latestWord: {
-                word: latestWord.word
+                word: latestWord.word,
+                letterCount: letterCount
             } })
         } catch (error) {
 			return res.status(500).json({ message: (error as Error).message });

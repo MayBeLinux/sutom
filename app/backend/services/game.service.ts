@@ -61,4 +61,9 @@ export class GameService {
         if (!latest) throw new Error("Word not found")
         return latest
     }
+
+    async countLetter(word: string) {
+        let count = [...word].length
+        return count
+    }
 }    
