@@ -7,7 +7,9 @@ const ROWS = [
   ["ENTER", "W", "X", "C", "V", "B", "N", "BACKSPACE"],
 ];
 
-export default function Keyboard() {
+type KeyboardProps = { onKeyPress: (key: string) => void };
+
+export default function Keyboard({ onKeyPress }: KeyboardProps) {
   return (
     <div className="keyboard">
       {ROWS.map((row, rowIndex) => (
@@ -18,7 +20,10 @@ export default function Keyboard() {
               <button
                 key={key}
                 type="button"
+                tabIndex={-1}
                 className={`keyboard-key ${isWide ? "keyboard-key--wide" : ""}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => onKeyPress(key)}
               >
                 {key === "BACKSPACE" ? (
                   <BackspaceIcon />

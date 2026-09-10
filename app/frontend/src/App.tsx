@@ -4,11 +4,13 @@ import GameBoard from "./components/GameBoard/GameBoard";
 import Keyboard from "./components/Keyboard/Keyboard";
 import StatsPanel from "./components/StatsPanel/StatsPanel";
 import HelpModal from "./components/HelpModal/HelpModal";
+import { useGame } from "./hooks/useGame";
 import "./App.css";
 
 function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const { board, handleKey } = useGame();
 
   return (
     <div className="app">
@@ -19,11 +21,11 @@ function App() {
 
       <main className="app-main">
         <section className="panel panel--game">
-          <GameBoard />
+          <GameBoard board={board} />
         </section>
 
         <section className="panel panel--keyboard">
-          <Keyboard />
+          <Keyboard onKeyPress={handleKey} />
         </section>
 
         {statsOpen && (

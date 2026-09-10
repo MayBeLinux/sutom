@@ -1,23 +1,9 @@
+import type { Tile } from "../../hooks/useGame";
 import "./GameBoard.css";
 
-type TileState = "correct" | "present" | "absent" | "empty";
+type GameBoardProps = { board: Tile[][] };
 
-type Tile = {
-  letter: string;
-  state: TileState;
-};
-
-const ROWS = 8;
-const COLS = 8;
-
-export default function GameBoard() {
-  const board: Tile[][] = Array.from({ length: ROWS }, () =>
-    Array.from(
-      { length: COLS },
-      () => ({ letter: "", state: "empty" as TileState }),
-    ),
-  );
-
+export default function GameBoard({ board }: GameBoardProps) {
   return (
     <div className="board">
       <div className="board-grid">
