@@ -18,7 +18,18 @@ export const gamesController = {
     },
     checkLetter: async (req: Request, res: Response) => {
         // Implement the logic to check if a letter corresponds to the word in the current game
-    }
+    },
 
+    getLatestWord: async (req: Request, res: Response) => {
+        try {
+            const gameService = new GameService()
+            const latestWord = await gameService.getLatestWord()
+            return res.status(200).json({ latestWord: {
+                word: latestWord.word
+            } })
+        } catch (error) {
+			return res.status(500).json({ message: (error as Error).message });
+        }
+    }
 
 }

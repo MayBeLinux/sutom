@@ -51,4 +51,14 @@ export class GameService {
         const word = await this.fetchWord();
         const wordFromFrontEnd = "";// the frontend send the word to check if the letter is in the word
     }
+
+    async getLatestWord() {
+        const repo = AppDataSource.getRepository(WordOfTheDay)
+        const latest = await repo.findOne({
+            where: {},
+            order: { date: 'DESC' }
+        })
+        if (!latest) throw new Error("Word not found")
+        return latest
+    }
 }    
