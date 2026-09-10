@@ -66,4 +66,9 @@ export class GameService {
         let count = [...word].length
         return count
     }
+
+    async getFirstLetter(word: string) {
+        let firstLetter = [...word][0]
+        return firstLetter
+    }
 }    
