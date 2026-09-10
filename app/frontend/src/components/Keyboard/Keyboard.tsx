@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BackspaceIcon } from "../icons/Icons";
 import "./Keyboard.css";
 
@@ -9,17 +8,6 @@ const ROWS = [
 ];
 
 export default function Keyboard() {
-  const [activeKey, setActiveKey] = useState<string | null>(null);
-  const [lastKey, setLastKey] = useState<string | null>(null);
-
-  function handlePress(key: string) {
-    setActiveKey(key);
-    setLastKey(key);
-    window.setTimeout(() => {
-      setActiveKey((current) => (current === key ? null : current));
-    }, 150);
-  }
-
   return (
     <div className="keyboard">
       {ROWS.map((row, rowIndex) => (
@@ -30,10 +18,7 @@ export default function Keyboard() {
               <button
                 key={key}
                 type="button"
-                className={`keyboard-key ${isWide ? "keyboard-key--wide" : ""} ${
-                  activeKey === key ? "keyboard-key--pressed" : ""
-                }`}
-                onClick={() => handlePress(key)}
+                className={`keyboard-key ${isWide ? "keyboard-key--wide" : ""}`}
               >
                 {key === "BACKSPACE" ? (
                   <BackspaceIcon />
@@ -47,11 +32,6 @@ export default function Keyboard() {
           })}
         </div>
       ))}
-
-      <p className="keyboard-caption">
-        Dernière touche détectée :{" "}
-        <strong>{lastKey ? lastKey : "aucune"}</strong>
-      </p>
     </div>
   );
 }
