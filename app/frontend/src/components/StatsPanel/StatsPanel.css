@@ -1,0 +1,33 @@
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  height: 100%;
+}
+
+.stats-title {
+  font-size: 1.1rem;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.stats-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stats-distribution__title {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
