@@ -9,12 +9,12 @@
   --color-text-dim: #8d8da0;
   --color-accent: #6c6cf0;
 
-  --tile-correct: #8f1f26;
-  --tile-correct-border: #b52a33;
-  --tile-present: #8a6d1f;
-  --tile-present-border: #b58f2a;
-  --tile-absent: #24344a;
-  --tile-absent-border: #33475f;
+  --tile-correct: #2f7a3d;
+  --tile-correct-border: #4bb463;
+  --tile-present: #a58824;
+  --tile-present-border: #d1b13a;
+  --tile-absent: #8f1f26;
+  --tile-absent-border: #b52a33;
   --tile-empty-border: #34343f;
 
   color-scheme: dark;
