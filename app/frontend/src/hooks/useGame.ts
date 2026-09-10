@@ -2,27 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchWord,
   submitGuess,
-  type GuessResult,
   type TileState,
   type WordChallenge,
 } from "../api/game";
-import { scoreGuess } from "../game/scoreGuess";
 
 const MAX_ROWS = 8;
-
-// Mots locaux utilisés tant que le backend n'est pas branché : dès que
-// fetchWord répond, on bascule sur le vrai challenge et cette liste
-// n'est plus lue.
-const LOCAL_WORDS = [
-  "MONTAGNE",
-  "BAGUETTE",
-  "PATIENCE",
-  "FROMAGES",
-  "CAILLOUX",
-];
+const PLACEHOLDER_COLS = 8;
 
 export type Tile = { letter: string; state: TileState };
-export type GameStatus = "playing" | "won" | "lost" | "error";
+export type GameStatus = "loading" | "playing" | "won" | "lost" | "error";
 export type UseGameResult = {
   status: GameStatus;
   challenge: WordChallenge | null;
@@ -40,11 +28,6 @@ type StateSnapshot = {
   currentCol: number;
 };
 
-function pickLocalWord(): string {
-  const index = Math.floor(Math.random() * LOCAL_WORDS.length);
-  return LOCAL_WORDS[index];
-}
-
 function buildInitialBoard(rows: number, length: number, firstLetter: string): Tile[][] {
   const board: Tile[][] = [];
   for (let r = 0; r < rows; r++) {
@@ -61,33 +44,34 @@ function buildInitialBoard(rows: number, length: number, firstLetter: string): T
   return board;
 }
 
+function buildPlaceholderBoard(): Tile[][] {
+  return Array.from({ length: MAX_ROWS }, () =>
+    Array.from(
+      { length: PLACEHOLDER_COLS },
+      () => ({ letter: "", state: "empty" as TileState }),
+    ),
+  );
+}
+
 /** React hook driving the Sutom-style game state machine. */
 export function useGame(): UseGameResult {
-  const [localTarget] = useState<string>(() => pickLocalWord());
-
-  const [status, setStatus] = useState<GameStatus>("playing");
-  const [challenge, setChallenge] = useState<WordChallenge | null>(() => ({
-    length: localTarget.length,
-    firstLetter: localTarget[0],
-  }));
-  const [board, setBoard] = useState<Tile[][]>(() =>
-    buildInitialBoard(MAX_ROWS, localTarget.length, localTarget[0]),
-  );
+  const [status, setStatus] = useState<GameStatus>("loading");
+  const [challenge, setChallenge] = useState<WordChallenge | null>(null);
+  const [board, setBoard] = useState<Tile[][]>(() => buildPlaceholderBoard());
   const [currentRow, setCurrentRow] = useState<number>(0);
-  const [currentCol, setCurrentCol] = useState<number>(1);
+  const [currentCol, setCurrentCol] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const stateRef = useRef<StateSnapshot>({
-    status: "playing",
-    challenge: { length: localTarget.length, firstLetter: localTarget[0] },
-    board: buildInitialBoard(MAX_ROWS, localTarget.length, localTarget[0]),
+    status: "loading",
+    challenge: null,
+    board: buildPlaceholderBoard(),
     currentRow: 0,
-    currentCol: 1,
+    currentCol: 0,
   });
 
   const submittingRef = useRef<boolean>(false);
   const mountedRef = useRef<boolean>(true);
-  const usingBackendRef = useRef<boolean>(false);
 
   useEffect(() => {
     stateRef.current = {
@@ -110,17 +94,16 @@ export function useGame(): UseGameResult {
       try {
         const result = await fetchWord();
         if (!mountedRef.current) return;
-        const snap = stateRef.current;
-        // Ne remplace le mot local que si le joueur n'a rien commencé à taper.
-        if (snap.currentRow !== 0 || snap.currentCol !== 1) return;
-        usingBackendRef.current = true;
         setChallenge(result);
         setBoard(buildInitialBoard(MAX_ROWS, result.length, result.firstLetter));
         setCurrentRow(0);
         setCurrentCol(1);
         setErrorMessage(null);
-      } catch {
-        // Backend injoignable : on continue en local avec le mot déjà tiré.
+        setStatus("playing");
+      } catch (err) {
+        if (!mountedRef.current) return;
+        setErrorMessage(err instanceof Error ? err.message : "Failed to load word");
+        setStatus("error");
       }
     })();
   }, []);
@@ -129,22 +112,12 @@ export function useGame(): UseGameResult {
     if (submittingRef.current) return;
     submittingRef.current = true;
     try {
-      let result: GuessResult;
-      if (usingBackendRef.current) {
-        result = await submitGuess(guess);
-        if (!mountedRef.current) return;
-      } else {
-        result = {
-          tiles: scoreGuess(guess, localTarget),
-          correct: guess.toUpperCase() === localTarget.toUpperCase(),
-        };
-      }
-
+      const result = await submitGuess(guess);
+      if (!mountedRef.current) return;
       const snap = stateRef.current;
       const nextBoard = snap.board.map((row) => row.slice());
       nextBoard[rowIndex] = result.tiles.map((t) => ({ letter: t.letter, state: t.state }));
       setBoard(nextBoard);
-
       if (result.correct) {
         setStatus("won");
       } else if (rowIndex >= MAX_ROWS - 1) {
@@ -160,7 +133,7 @@ export function useGame(): UseGameResult {
     } finally {
       submittingRef.current = false;
     }
-  }, [localTarget]);
+  }, []);
 
   const handleKey = useCallback(
     (key: string) => {
