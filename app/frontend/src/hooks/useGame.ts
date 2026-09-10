@@ -55,7 +55,7 @@ function buildPlaceholderBoard(): Tile[][] {
 
 /** React hook driving the Sutom-style game state machine. */
 export function useGame(): UseGameResult {
-  const [status, setStatus] = useState<GameStatus>("loading");
+  const [status, setStatus] = useState<GameStatus>("playing");
   const [challenge, setChallenge] = useState<WordChallenge | null>(null);
   const [board, setBoard] = useState<Tile[][]>(() => buildPlaceholderBoard());
   const [currentRow, setCurrentRow] = useState<number>(0);
@@ -63,9 +63,9 @@ export function useGame(): UseGameResult {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const stateRef = useRef<StateSnapshot>({
-    status: "loading",
+    status: "playing",
     challenge: null,
-    board: [],
+    board: buildPlaceholderBoard(),
     currentRow: 0,
     currentCol: 0,
   });
@@ -94,17 +94,16 @@ export function useGame(): UseGameResult {
       try {
         const result = await fetchWord();
         if (!mountedRef.current) return;
+        const snap = stateRef.current;
+        if (snap.currentRow !== 0 || snap.currentCol !== 0) return;
         const initialBoard = buildEmptyBoard(MAX_ROWS, result.length, result.firstLetter);
         setChallenge(result);
         setBoard(initialBoard);
         setCurrentRow(0);
         setCurrentCol(1);
         setErrorMessage(null);
-        setStatus("playing");
-      } catch (err) {
-        if (!mountedRef.current) return;
-        setErrorMessage(err instanceof Error ? err.message : "Failed to load word");
-        setStatus("error");
+      } catch {
+        // Backend unreachable: stay in local placeholder mode so the UI is still typeable.
       }
     })();
   }, []);
@@ -112,7 +111,15 @@ export function useGame(): UseGameResult {
   const submitCurrentRow = useCallback(async (guess: string, rowIndex: number) => {
     if (submittingRef.current) return;
     submittingRef.current = true;
+    const hasBackend = stateRef.current.challenge !== null;
     try {
+      if (!hasBackend) {
+        if (rowIndex < MAX_ROWS - 1) {
+          setCurrentRow(rowIndex + 1);
+          setCurrentCol(0);
+        }
+        return;
+      }
       const result = await submitGuess(guess);
       if (!mountedRef.current) return;
       const snap = stateRef.current;
@@ -139,14 +146,15 @@ export function useGame(): UseGameResult {
   const handleKey = useCallback(
     (key: string) => {
       const snap = stateRef.current;
-      if (snap.status !== "playing" || snap.challenge === null) return;
+      if (snap.status !== "playing") return;
 
-      const length = snap.challenge.length;
+      const length = snap.challenge?.length ?? PLACEHOLDER_COLS;
+      const minCol = snap.challenge === null ? 0 : 1;
       const row = snap.currentRow;
       const col = snap.currentCol;
 
       if (key === "BACKSPACE") {
-        if (col > 1) {
+        if (col > minCol) {
           const nextBoard = snap.board.map((r) => r.slice());
           nextBoard[row][col - 1] = { letter: "", state: "empty" };
           setBoard(nextBoard);
