@@ -34,7 +34,9 @@ const API_BASE_URL =
 
 // GET {API_BASE_URL}/api/games/day-word
 export async function fetchWord(): Promise<WordChallenge> {
-  const response = await fetch(`${API_BASE_URL}/api/games/day-word`);
+  const response = await fetch(`${API_BASE_URL}/api/games/day-word`, {
+    cache: "no-store",
+  });
   if (!response.ok) {
     throw new Error(`fetchWord failed: ${response.status}`);
   }
