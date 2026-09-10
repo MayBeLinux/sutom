@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchWord,
-  submitGuess,
+  type GuessResult,
   type TileState,
   type WordChallenge,
 } from "../api/game";
+import { scoreGuess } from "../game/scoreGuess";
 
 const MAX_ROWS = 8;
 const PLACEHOLDER_COLS = 8;
@@ -112,12 +113,18 @@ export function useGame(): UseGameResult {
     if (submittingRef.current) return;
     submittingRef.current = true;
     try {
-      const result = await submitGuess(guess);
-      if (!mountedRef.current) return;
       const snap = stateRef.current;
+      if (snap.challenge === null) return;
+      const target = snap.challenge.word;
+      const result: GuessResult = {
+        tiles: scoreGuess(guess, target),
+        correct: guess.toUpperCase() === target.toUpperCase(),
+      };
+
       const nextBoard = snap.board.map((row) => row.slice());
       nextBoard[rowIndex] = result.tiles.map((t) => ({ letter: t.letter, state: t.state }));
       setBoard(nextBoard);
+
       if (result.correct) {
         setStatus("won");
       } else if (rowIndex >= MAX_ROWS - 1) {
@@ -126,10 +133,6 @@ export function useGame(): UseGameResult {
         setCurrentRow(rowIndex + 1);
         setCurrentCol(1);
       }
-    } catch (err) {
-      if (!mountedRef.current) return;
-      setErrorMessage(err instanceof Error ? err.message : "Failed to submit guess");
-      setStatus("error");
     } finally {
       submittingRef.current = false;
     }
