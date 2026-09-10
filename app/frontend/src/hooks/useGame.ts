@@ -7,6 +7,7 @@ import {
 } from "../api/game";
 
 const MAX_ROWS = 8;
+const PLACEHOLDER_COLS = 8;
 
 export type Tile = { letter: string; state: TileState };
 export type GameStatus = "loading" | "playing" | "won" | "lost" | "error";
@@ -43,11 +44,20 @@ function buildEmptyBoard(rows: number, length: number, firstLetter: string): Til
   return board;
 }
 
+function buildPlaceholderBoard(): Tile[][] {
+  return Array.from({ length: MAX_ROWS }, () =>
+    Array.from(
+      { length: PLACEHOLDER_COLS },
+      () => ({ letter: "", state: "empty" as TileState }),
+    ),
+  );
+}
+
 /** React hook driving the Sutom-style game state machine. */
 export function useGame(): UseGameResult {
   const [status, setStatus] = useState<GameStatus>("loading");
   const [challenge, setChallenge] = useState<WordChallenge | null>(null);
-  const [board, setBoard] = useState<Tile[][]>([]);
+  const [board, setBoard] = useState<Tile[][]>(() => buildPlaceholderBoard());
   const [currentRow, setCurrentRow] = useState<number>(0);
   const [currentCol, setCurrentCol] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
